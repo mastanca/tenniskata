@@ -1,146 +1,120 @@
 package tenniskata
 
-type tennisGame2 struct {
-	P1point int
-	P2point int
+const (
+	loveScore = "Love"
+	fifteenScore = "Fifteen"
+	thirtyScore = "Thirty"
+	fortyScore = "Forty"
+)
 
-	P1res       string
-	P2res       string
-	player1Name string
-	player2Name string
+type score struct {
+	value int
+}
+
+func (s* score) increase() {
+	s.value += 1
+}
+
+func (s score) print() string {
+	switch s.value {
+	case 0:
+		return loveScore
+	case 1:
+		return fifteenScore
+	case 2:
+		return thirtyScore
+	case 3:
+		return fortyScore
+	default:
+		return ""
+	}
+}
+
+type player struct {
+	score score
+	result string
+	name string
+}
+
+type tennisGame2 struct {
+	player1 player
+	player2 player
 }
 
 func TennisGame2(player1Name string, player2Name string) TennisGame {
-	game := &tennisGame2{
-		player1Name: player1Name,
-		player2Name: player2Name}
-
-	return game
+	return &tennisGame2{
+		player1: player{name: player1Name},
+		player2: player{name: player2Name},
+	}
 }
 
 func (game *tennisGame2) GetScore() string {
 	score := ""
-	if game.P1point == game.P2point && game.P1point < 4 {
-		if game.P1point == 0 {
-			score = "Love"
-		}
-		if game.P1point == 1 {
-			score = "Fifteen"
-		}
-		if game.P1point == 2 {
-			score = "Thirty"
-		}
+	if game.player1Score() == game.player2Score() && game.player1Score() < 4 {
+		score = game.printPlayer1Score()
 		score += "-All"
 	}
-	if game.P1point == game.P2point && game.P1point >= 3 {
+	if game.player1Score() == game.player2Score() && game.player1Score() >= 3 {
 		score = "Deuce"
 	}
 
-	if game.P1point > 0 && game.P2point == 0 {
-		if game.P1point == 1 {
-			game.P1res = "Fifteen"
-		}
-		if game.P1point == 2 {
-			game.P1res = "Thirty"
-		}
-		if game.P1point == 3 {
-			game.P1res = "Forty"
-		}
-
-		game.P2res = "Love"
-		score = game.P1res + "-" + game.P2res
-	}
-	if game.P2point > 0 && game.P1point == 0 {
-		if game.P2point == 1 {
-			game.P2res = "Fifteen"
-		}
-		if game.P2point == 2 {
-			game.P2res = "Thirty"
-		}
-		if game.P2point == 3 {
-			game.P2res = "Forty"
-		}
-
-		game.P1res = "Love"
-		score = game.P1res + "-" + game.P2res
+	if game.shouldPrintOverallScore() {
+		score = game.printOverallScore()
 	}
 
-	if game.P1point > game.P2point && game.P1point < 4 {
-		if game.P1point == 2 {
-			game.P1res = "Thirty"
-		}
-		if game.P1point == 3 {
-			game.P1res = "Forty"
-		}
-		if game.P2point == 1 {
-			game.P2res = "Fifteen"
-		}
-		if game.P2point == 2 {
-			game.P2res = "Thirty"
-		}
-		score = game.P1res + "-" + game.P2res
-	}
-	if game.P2point > game.P1point && game.P2point < 4 {
-		if game.P2point == 2 {
-			game.P2res = "Thirty"
-		}
-		if game.P2point == 3 {
-			game.P2res = "Forty"
-		}
-		if game.P1point == 1 {
-			game.P1res = "Fifteen"
-		}
-		if game.P1point == 2 {
-			game.P1res = "Thirty"
-		}
-		score = game.P1res + "-" + game.P2res
-	}
-
-	if game.P1point > game.P2point && game.P2point >= 3 {
+	if game.player1Score() > game.player2Score() && game.player2Score() >= 3 {
 		score = "Advantage player1"
 	}
 
-	if game.P2point > game.P1point && game.P1point >= 3 {
+	if game.player2Score() > game.player1Score() && game.player1Score() >= 3 {
 		score = "Advantage player2"
 	}
 
-	if game.P1point >= 4 && game.P2point >= 0 && (game.P1point-game.P2point) >= 2 {
+	if game.player1Score() >= 4 && game.player2Score() >= 0 && (game.player1Score()-game.player2Score()) >= 2 {
 		score = "Win for player1"
 	}
-	if game.P2point >= 4 && game.P1point >= 0 && (game.P2point-game.P1point) >= 2 {
+	if game.player2Score() >= 4 && game.player1Score() >= 0 && (game.player2Score()-game.player1Score()) >= 2 {
 		score = "Win for player2"
 	}
 	return score
 }
 
-func (game *tennisGame2) SetP1Score(number int) {
-
-	for i := 0; i < number; i++ {
-		game.P1Score()
-	}
-
+func (game *tennisGame2) shouldPrintOverallScore() bool {
+	return game.player1Score() > 0 && game.player2Score() == 0 || game.player2Score() > 0 && game.player1Score() == 0 || game.player1Score() > game.player2Score() && game.player1Score() < 4 || game.player2Score() > game.player1Score() && game.player2Score() < 4
 }
 
-func (game *tennisGame2) SetP2Score(number int) {
-
-	for i := 0; i < number; i++ {
-		game.P2Score()
-	}
-
+func (game *tennisGame2) printOverallScore() string {
+	return game.getPlayer1Result() + "-" + game.getPlayer2Result()
 }
 
-func (game *tennisGame2) P1Score() {
-	game.P1point++
+func (game *tennisGame2) player2Score() int {
+	return game.player2.score.value
 }
 
-func (game *tennisGame2) P2Score() {
-	game.P2point++
+func (game *tennisGame2) player1Score() int {
+	return game.player1.score.value
 }
 
 func (game *tennisGame2) WonPoint(player string) {
 	if player == "player1" {
-		game.P1Score()
+		game.player1.score.increase()
 	} else {
-		game.P2Score()
+		game.player2.score.increase()
 	}
+}
+
+func (game *tennisGame2) getPlayer1Result() string {
+	return game.player1.score.print()
+}
+
+func (game *tennisGame2) getPlayer2Result() string {
+	return game.player2.score.print()
+}
+
+func (game tennisGame2) printPlayer1Score() string {
+	return game.player1.score.print()
+}
+
+func (game tennisGame2) printPlayer2Score() string {
+	return game.player2.score.print()
 }
