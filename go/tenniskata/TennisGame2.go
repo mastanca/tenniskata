@@ -49,38 +49,41 @@ func TennisGame2(player1Name string, player2Name string) TennisGame {
 }
 
 func (game *tennisGame2) GetScore() string {
-	score := ""
-	if game.player1Score() == game.player2Score() && game.player1Score() < 4 {
-		score = game.printPlayer1Score()
-		score += "-All"
-	}
-	if game.player1Score() == game.player2Score() && game.player1Score() >= 3 {
-		score = "Deuce"
+	if game.player1Score() == game.player2Score() {
+		if game.player1Score() >= 3 {
+			return "Deuce"
+		} else {
+			return game.printPlayer1Score() + "-All"
+		}
 	}
 
 	if game.shouldPrintOverallScore() {
-		score = game.printOverallScore()
+		return game.printOverallScore()
 	}
 
-	if game.player1Score() > game.player2Score() && game.player2Score() >= 3 {
-		score = "Advantage player1"
-	}
 
-	if game.player2Score() > game.player1Score() && game.player1Score() >= 3 {
-		score = "Advantage player2"
+	if score := compareScores("player1", game.player1Score(), game.player2Score()); score == "" {
+		return compareScores("player2", game.player2Score(), game.player1Score())
+	} else {
+		return score
 	}
+}
 
-	if game.player1Score() >= 4 && game.player2Score() >= 0 && (game.player1Score()-game.player2Score()) >= 2 {
-		score = "Win for player1"
+func compareScores(playerName string, score1, score2 int ) string {
+	scoreDifference := score1 - score2
+	if score1 >= 4  {
+		if scoreDifference >= 2 {
+			return  "Win for " + playerName
+		}
+		if scoreDifference >= 1 {
+			return "Advantage " + playerName
+		}
 	}
-	if game.player2Score() >= 4 && game.player1Score() >= 0 && (game.player2Score()-game.player1Score()) >= 2 {
-		score = "Win for player2"
-	}
-	return score
+	return ""
 }
 
 func (game *tennisGame2) shouldPrintOverallScore() bool {
-	return game.player1Score() > 0 && game.player2Score() == 0 || game.player2Score() > 0 && game.player1Score() == 0 || game.player1Score() > game.player2Score() && game.player1Score() < 4 || game.player2Score() > game.player1Score() && game.player2Score() < 4
+	return game.player1Score() < 4 && game.player2Score() < 4
 }
 
 func (game *tennisGame2) printOverallScore() string {
